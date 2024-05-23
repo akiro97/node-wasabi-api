@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { createFolder, deleteFolder, listFolders, uploadFileToWasabiFolder } from '../providers/wasabi';
+import { createFolder, deleteFolder, listFolders, uploadFileToWasabiFolder, uploadFilesToFolder } from '../providers/wasabi';
 import upload from '../utils/multer';
 import { getUserIDFromToken } from '../middlewares/auth';
 
@@ -31,8 +31,23 @@ export default class FolderApi {
             try {           
                 const bucket = bucketName;
                 const folderName = `${data.folder_name}`;
+
+                // // Check logged user
+                // const checkedId = await getUserIDFromToken(req);
+
+                // if(!folderName) {
+                //     // Create roo folder with user_id or username
+                //     console.log("user from req token", checkedId)
+                // }else{
+                //     console.log("foler name is", folderName);
+                // }
+
+
+                // foldername empty
                 
-                // Check logged user
+
+                // pass user_id or username for first root foldername
+
 
 
                 // Check payment users
@@ -54,7 +69,7 @@ export default class FolderApi {
 
                 const response = await createFolder(bucket, folderName);
                 
-                res.status(200).send(response);
+                res.status(200).send(response.$metadata);
             } catch (error) {
                 console.error("can not fetch folders from wasabi bucket", error);
                 throw error;
@@ -73,6 +88,37 @@ export default class FolderApi {
                 res.send(response);
             } catch (error) {
                 console.error("Error delete folder from  buckets", error);
+                throw error;
+            }
+        });
+
+        this.folderApi.post("/multiple/upload",  upload.array("files", 5), async(req: Request, res: Response) => {
+
+
+            try {
+               
+                const bucket = bucketName;
+                const folderName = req.params.folder_name;
+
+
+                if (!req.files) {
+                    return res.status(400).send('No files were uploaded.');
+                  }
+                
+                  const files = req.files as Express.Multer.File[];
+
+                  console.log("select multiple files", files);
+
+                  for (const file of files) {
+                    const key = `${folderName}/${file.originalname}`; // Change the folder path as needed
+                    const response = await uploadFilesToFolder(bucket, key, file);
+
+                    return response
+                  }
+                
+                  res.status(200).send('Files uploaded successfully.');
+            } catch (error) {
+                console.error("Error upload file to folder", error);
                 throw error;
             }
         });
@@ -123,7 +169,7 @@ export default class FolderApi {
                 console.error("Error upload file to folder", error);
                 throw error;
             }
-        })
+        });
     } 
 
     public static InitfolderApi(): FolderApi {

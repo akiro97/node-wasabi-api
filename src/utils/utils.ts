@@ -1,9 +1,12 @@
 import archiver from 'archiver';
 import axios from 'axios';
 import dotenv from 'dotenv';
-
+import bcryptJS from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
+
+
 
 const wasabiHost = process.env.WASABI_UPLOAD_UR!;
 const region = process.env.WASABI_REGION!;
@@ -63,4 +66,41 @@ export async function getFileType(filename: any) {
       return "video";
     }
     // Add more cases for other file types if needed
+}
+
+
+export default class Utils {
+  // hashing password
+  public static hashPassword = async (plainPassword: string) => {
+    try {
+      const password = bcryptJS.hash(plainPassword, 12);
+
+      return password;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  // Compare password
+  public static comparePassword = async (passwordToCheck: string, userPassword: string) => {
+    const isValid = bcryptJS.compare(passwordToCheck, userPassword)
+    
+    if(isValid) {
+      return isValid;
+    }else{
+      return Error("Error matching password...")
+    }
+  }
+
+
+  //Verify token
+  public static verifyToken = (token: string) => {
+    try {
+      return jwt.verify(token, process.env.JWT_SECRET_KET!);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }

@@ -1,13 +1,22 @@
 import express, { Request, Response } from 'express';
-import folderApi from './folders.api';
+import FolderApi from './folders.api';
+import AuthApi from './auth.api';
+
+//use all api
+const authApi = AuthApi.InitAuthApi().commitAuthApi();
+const folderApi = FolderApi.InitfolderApi().commitFolderApi();
+
 
 export default class Api {
     private static _instance: Api;
     private readonly api = express.Router();
 
     private constructor() {
+        // Auth
+        this.api.use("/auth", authApi);
+
         // FOLDERS Routers
-        this.api.use("/folders", folderApi.InitfolderApi().commitFolderApi());
+        this.api.use("/folders", folderApi);
     } 
 
     public static InitApi(): Api {

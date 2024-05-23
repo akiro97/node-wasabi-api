@@ -228,6 +228,24 @@ export async function uploadFileToFolder(bucketName: string, folderName: string,
     }
 }
 
+export async function uploadFilesToFolder(bucketName: string, key: string, file: Express.Multer.File) {
+    const params = {
+        Bucket: bucketName,
+        Key: key,
+        Body: file.buffer,
+      };
+    try {
+     const command = new PutObjectCommand(params);
+     
+     const response = await client.send(command);
+
+     return response;
+    } catch (error) {
+        console.error(`Error upload file to wasabi folders`);
+        throw error;
+    }
+}
+
 
 // GET:: fetch all files from wasabi folder
 export async function listObjectsInFolder(bucketName: string, folderName: string) {
