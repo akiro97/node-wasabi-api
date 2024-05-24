@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import fs from 'fs';
 import { createFolder, deleteFolder, fetchAllObjectsFromWasabiFolder, listFolders, listObjectsInFolder, uploadFileToFolder, uploadFileToWasabiFolder, uploadFilesToFolder } from '../providers/wasabi';
 import upload from '../utils/multer';
 import path from 'path';
@@ -93,10 +94,8 @@ export default class FolderApi {
             }
         });
 
-        // Multiple upload file
-        this.folderApi.post("/:folder_name/multiple/upload",  upload.array("files", 20), async(req: Request, res: Response) => {
-
-
+        //CREATE:: Multiple file
+        this.folderApi.post("/:folder_name/multiple-files/upload",  upload.array("files", 20), async(req: Request, res: Response) => {
             try {
                
                 const bucket = bucketName;
@@ -109,15 +108,12 @@ export default class FolderApi {
                 
                   const files = req.files as Express.Multer.File[];
 
-                  console.log("select multiple files", files);
-
                 for(const file of files) {
                     const key = `${folderName}/${file.originalname}`
-                    const response = await uploadFilesToFolder(bucket, key, file)
-                    console.log("files selected", response);
+                    await uploadFilesToFolder(bucket, key, file);
                 }
-                
-                res.status(200).send('Files uploaded successfully.');
+
+                res.status(200).send("Upload multiple files successfully...!")
             } catch (error) {
                 console.error("Error upload file to folder", error);
                 throw error;
@@ -145,7 +141,7 @@ export default class FolderApi {
             }
         });
 
-        // GET:: fetch object from folder
+        // GET:: fetch object from folder --> [failed responding]
         this.folderApi.get("/:folder_name", async (req: Request, res: Response) => {
             try {
                 const bucket = bucketName;
@@ -159,7 +155,44 @@ export default class FolderApi {
                 console.log("Error to fetch object from wasabi folder", error);
                 throw error;
             }
-        })
+        });
+
+        //CREATE:: upload folders to folder of wasabi
+        this.folderApi.post("/upload-folder-multi-files", upload.array("files"), async (req, res) => {
+            const files = req.files;
+
+            console.log("list folders selected:", files);
+
+            // if(!files) {
+            //     res.json("Files uploaded successfully...!")
+            // }else {
+            //     files?.forEach((file: any) => {
+            //         const targetPath =  path.join(__dirname, "../", "uploads", (file as Express.Multer.File).originalname);
+    
+            //         fs.renameSync((file as Express.Multer.File).path, targetPath);
+    
+    
+            //     })
+    
+            //     res.json("Files uploaded successfully...!")
+            // }
+
+             
+        });
+        
+
+        //CREATE:: uplaod mltiple folders
+        this.folderApi.post('/multi-folders-upload', upload.array("files"), async (req: Request, res: Response) => {
+            const files = req.files;
+
+            console.log("list folders selected:", files);
+           
+            // req.files?.forEach(file => {
+            //     const targetPath = path.join(__dirname, '..', 'uploads', (file as Express.Multer.File).originalname);
+            //     fs.renameSync((file as Express.Multer.File).path, targetPath);
+            // });
+            // res.json({ message: 'Files uploaded successfully!' });
+        });
 
     } 
 
