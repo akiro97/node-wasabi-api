@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
-import { createFolder, deleteFolder, listFolders, uploadFileToWasabiFolder, uploadFilesToFolder } from '../providers/wasabi';
+import { createFolder, deleteFolder, fetchAllObjectsFromWasabiFolder, listFolders, listObjectsInFolder, uploadFileToFolder, uploadFileToWasabiFolder, uploadFilesToFolder } from '../providers/wasabi';
 import upload from '../utils/multer';
 import { getUserIDFromToken } from '../middlewares/auth';
+import path from 'path';
 
 const bucketName = process.env.WASABI_BUCKET_NAME!;
 
@@ -84,15 +85,17 @@ export default class FolderApi {
         
                 const response = await deleteFolder(bucket, folderName);
         
+                console.log("folder name want to delete", folderName)
         
-                res.send(response);
+                res.send(response?.$metadata);
             } catch (error) {
                 console.error("Error delete folder from  buckets", error);
                 throw error;
             }
         });
 
-        this.folderApi.post("/multiple/upload",  upload.array("files", 5), async(req: Request, res: Response) => {
+        // Multiple upload file
+        this.folderApi.post("/:folder_name/multiple/upload",  upload.array("files", 20), async(req: Request, res: Response) => {
 
 
             try {
@@ -109,14 +112,13 @@ export default class FolderApi {
 
                   console.log("select multiple files", files);
 
-                  for (const file of files) {
-                    const key = `${folderName}/${file.originalname}`; // Change the folder path as needed
-                    const response = await uploadFilesToFolder(bucket, key, file);
-
-                    return response
-                  }
+                for(const file of files) {
+                    const key = `${folderName}/${file.originalname}`
+                    const response = await uploadFilesToFolder(bucket, key, file)
+                    console.log("files selected", response);
+                }
                 
-                  res.status(200).send('Files uploaded successfully.');
+                res.status(200).send('Files uploaded successfully.');
             } catch (error) {
                 console.error("Error upload file to folder", error);
                 throw error;
@@ -129,47 +131,37 @@ export default class FolderApi {
                 const file = req.file;
                 // Check bucket
                 const bucket = bucketName;
-                const folderName = req.params.folder_name;
-                const filePath = `${file?.path}`;
+                const key = req.params.folder_name;
 
-                // if(file?.size )
-                // const checkId = await getUserIDFromToken(req);
-
-                // if(!checkId) throw Error("LOGIN_IS_REQUIRED");
-
-                // const _userNewName = req.accepts;
-                // The logical
-
-
-                // Check folder exist
-
-                // if no folder --> then create new folder
-
-                // stream file 
-
-                // get file path 
-
-                // endcrypt file name 
-
-                // save to database
-
-                // upload file to wasabi storage with endcrypted filename
-
-                // response to frontend
-
-                // if (!file) {
-                //     return res.status(400).send("No file uploaded.");
-                // }
-                // // file from local device path
+                if(!file) {
+                    return res.status(400).send('No files were uploaded.');
+                }
         
-                const result = await uploadFileToWasabiFolder(bucket, folderName, filePath);
+                const result = await  uploadFileToFolder(bucket, key, file);
         
-                res.send(result);
+                res.status(200).send(result.$metadata);
             } catch (error) {
                 console.error("Error upload file to folder", error);
                 throw error;
             }
         });
+
+        // GET:: fetch object from folder
+        this.folderApi.get("/:folder_name", async (req: Request, res: Response) => {
+            try {
+                const bucket = bucketName;
+                const key = req.params.folder_name;
+                const downloadPlath = path.join(__dirname, './public/download', path.basename(key))
+
+                const results = await fetchAllObjectsFromWasabiFolder(bucket, key, downloadPlath);
+
+                res.status(200).send(results);
+            } catch (error) {
+                console.log("Error to fetch object from wasabi folder", error);
+                throw error;
+            }
+        })
+
     } 
 
     public static InitfolderApi(): FolderApi {

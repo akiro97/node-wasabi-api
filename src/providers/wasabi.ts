@@ -13,7 +13,7 @@ import { Readable } from 'stream';
 import { pipeline } from "stream";
 import { promisify } from "util";
 // REading files from wasabi folder
-const streamPipeline = promisify(pipeline);
+const pipelineAsync = promisify(pipeline);
 
 // ENVIROMENT
 dotenv.config();
@@ -209,13 +209,20 @@ export async function deleteFolder(bucketName: string, folderName: string) {
 }
 
 //CREATE:: upload file to wasabi folder
-export async function uploadFileToFolder(bucketName: string, folderName: string, file: Express.Multer.File) {
+export async function uploadFileToFolder(bucketName: string, key: string, file: Express.Multer.File) {
+    // const uploadParams = {
+    //         Bucket: bucketName,
+    //         Key: `${folderName}/${file.originalname}`,
+    //         Body: file.buffer,
+    //         ContentType: file.mimetype
+    // }
+
     const uploadParams = {
-            Bucket: bucketName,
-            Key: `${folderName}/${file.originalname}`,
-            Body: file.buffer,
-            ContentType: file.mimetype
-    }
+        Bucket: bucketName,
+        Key: key,
+        Body: file.buffer,
+    };
+    
     try {
      const command = new PutObjectCommand(uploadParams);
      
@@ -223,11 +230,12 @@ export async function uploadFileToFolder(bucketName: string, folderName: string,
 
      return response;
     } catch (error) {
-        console.error(`Error upload file to wasabi ${folderName}`);
+        console.error(`Error upload file to wasabi ${key}`);
         throw error;
     }
 }
 
+// CREATE:: upload multiple file to wasabi folder
 export async function uploadFilesToFolder(bucketName: string, key: string, file: Express.Multer.File) {
     const params = {
         Bucket: bucketName,
@@ -242,6 +250,33 @@ export async function uploadFilesToFolder(bucketName: string, key: string, file:
      return response;
     } catch (error) {
         console.error(`Error upload file to wasabi folders`);
+        throw error;
+    }
+}
+
+// GET:: fetch all files object from wasabi folder by foldername
+export async function fetchAllObjectsFromWasabiFolder(bucketName: string, key: string, downloadPlath: string) {
+    const getObjectsParmas = {
+        Bucket: bucketName,
+        Key: key,
+    };
+
+    try {
+        const command = new GetObjectCommand(getObjectsParmas);
+        const data = await client.send(command);
+
+        if(data) {
+            const writeStream = fs.createWriteStream(downloadPlath);
+
+            const response = await pipelineAsync(data.Body as NodeJS.ReadableStream, writeStream);
+
+            console.log("Successfully to fetch all object from folder");
+
+            return response;
+        }
+
+    } catch (error) {
+        console.log("Error to fetch object from wasabi folder", error);
         throw error;
     }
 }
