@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import { createFolder, deleteFolder, fetchAllObjectsFromWasabiFolder, listFolders, listObjectsInFolder, uploadFileToFolder, uploadFileToWasabiFolder, uploadFilesToFolder } from '../providers/wasabi';
 import upload from '../utils/multer';
-import { getUserIDFromToken } from '../middlewares/auth';
 import path from 'path';
 
 const bucketName = process.env.WASABI_BUCKET_NAME!;
