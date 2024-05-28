@@ -1,5 +1,6 @@
 import { QueryTypes } from "sequelize";
-import InterfaceMiddleware from "../middlewares/InterfaceMiddleware";
+import InterfaceMiddleware from "@middleware/InterfaceMiddleware";
+
 
 export interface User {
     id: number;
