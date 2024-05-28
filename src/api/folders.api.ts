@@ -1,8 +1,7 @@
 import express, { Request, Response } from 'express';
-import fs from 'fs';
 import { createFolder, deleteFolder, fetchAllObjectsFromWasabiFolder, listFolders, listObjectsInFolder, uploadFileToFolder, uploadFileToWasabiFolder, uploadFilesToFolder } from '../providers/wasabi';
-import upload from '../utils/multer';
 import path from 'path';
+import upload from '@utils/multer';
 
 const bucketName = process.env.WASABI_BUCKET_NAME!;
 
@@ -29,48 +28,31 @@ export default class FolderApi {
         // CREATE:: create folder root (main folder)
         this.folderApi.post("/", async (req: Request, res: Response) => {
             const data = req.body;
-            try {           
+            try {
+
                 const bucket = bucketName;
                 const folderName = `${data.folder_name}`;
 
-                // // Check logged user
-                // const checkedId = await getUserIDFromToken(req);
+                // Check empty folder name
+                if(!folderName) {
+                    // Dir Username as root folders
+                    // const newFolder = checkId.username;
 
-                // if(!folderName) {
-                //     // Create roo folder with user_id or username
-                //     console.log("user from req token", checkedId)
-                // }else{
-                //     console.log("foler name is", folderName);
-                // }
+                    // Check user logged in
+                    // const checkId = await getUserIDFromToken(req);   
+
+                    
+                    // Check user payment
 
 
-                // foldername empty
+
+                    res.status(200).send("create root folder by logged in username")
+                }else {
+                    const response = await createFolder(bucket, folderName);
                 
+                    res.status(200).send(response.$metadata);
+                }
 
-                // pass user_id or username for first root foldername
-
-
-
-                // Check payment users
-
-
-                // Validation and get sharing data
-
-
-                // Encrypt folder name to new folder name
-
-
-                // Save to foldername and new folder name to database
-
-
-                // create wasabi folder with endcrypted foldername
-
-
-                // response to frontend
-
-                const response = await createFolder(bucket, folderName);
-                
-                res.status(200).send(response.$metadata);
             } catch (error) {
                 console.error("can not fetch folders from wasabi bucket", error);
                 throw error;
@@ -95,7 +77,7 @@ export default class FolderApi {
         });
 
         //CREATE:: Multiple file
-        this.folderApi.post("/:folder_name/multiple-files/upload",  upload.array("files", 20), async(req: Request, res: Response) => {
+        this.folderApi.post("/:folder_name/multiple-files/upload",  upload.array("files", 2000), async(req: Request, res: Response) => {
             try {
                
                 const bucket = bucketName;
@@ -193,6 +175,9 @@ export default class FolderApi {
             // });
             // res.json({ message: 'Files uploaded successfully!' });
         });
+
+
+        // 
 
     } 
 

@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize";
-import ConnectionDB from "../config/database";
+import ConnectionDB from "@configs/database";
 
 
 export default class InterfaceMiddleware {

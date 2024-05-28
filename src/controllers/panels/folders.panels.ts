@@ -1,5 +1,5 @@
 import { QueryTypes } from 'sequelize';
-import InterfaceMiddleware from "../../middlewares/InterfaceMiddleware";
+import InterfaceMiddleware from '@middleware/InterfaceMiddleware';
 
 
 export default class UserInterface extends InterfaceMiddleware {

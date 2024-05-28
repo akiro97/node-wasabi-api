@@ -5,12 +5,12 @@ import cookieParser from 'cookie-parser';
 import * as fs from "fs";
 import * as dotenv from 'dotenv';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { readFileFromWasabi, createFolder, uploadFileToWasabiFolder, deleteFolder, listFolders, listObjects, uploadFileToFolder, listObjectsInFolder, listObjectsInFolderV2 } from './providers/wasabi';
+import { readFileFromWasabi, listObjects, uploadFileToFolder, listObjectsInFolderV2 } from './providers/wasabi';
 import { S3Client } from "@aws-sdk/client-s3";
-import upload from './utils/multer';
 
 // Endpoin Api
 import BaseApi from './api/base.api';
+import upload from '@utils/multer';
 
 
 // ENVIROMENT
@@ -52,13 +52,7 @@ export default class App {
         this.app.use(bodyParser.json());
         this.app.use(cookieParser());
         this.app.use(express.static(__dirname +  dir));
-
-        this.app.use(cookieParser());
-        this.app.use(cors());
-        this.app.use(express.static( __dirname + "../public"));
-        this.app.use(bodyParser.json());
-        this.app.use(express.static(__dirname + "./public"));
-
+        
         // Routes
         this.app.get("/", async (_req: Request, res: Response) => {
             res.send("application is healthy...!")
